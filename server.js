@@ -1,7 +1,7 @@
 const inquirer = require("inquirer");
 const cTable = require("console.table");
+const connection = require("./db/connection");
 console.table();
-
 //Menu Function
 const menuPrompts = () => {
   inquirer
@@ -33,7 +33,7 @@ const menuPrompts = () => {
         viewDepartment();
       }
       if (response.question === "View all Roles") {
-        viewRoles();
+        viewRole();
       }
       if (response.question === "View all Employees") {
         viewEmployees();
@@ -64,3 +64,83 @@ const addDepartment = () => {
       );
     });
 };
+//Add Role
+const addRole = () => {
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "name",
+        message: "What role would you like to add?",
+      },
+    ])
+    .then((answer) => {
+      connection.query(
+        "INSERT INTO role",
+        { name: answer.name },
+        (err, res) => {
+          menuPrompts();
+        }
+      );
+    });
+};
+//Add Employee
+const addEmployee = () => {
+  return inquirer
+    .prompt([
+      {
+        type: "input",
+        name: "name",
+        message: "What is the employees name?",
+      },
+    ])
+    .then((answer) => {
+      connection.query(
+        "INSERT INTO employee",
+        { name: answer.name },
+        (err, res) => {
+          menuPrompts();
+        }
+      );
+    });
+};
+//View Department
+const viewDepartment = () => {
+  connection.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+    menuPrompts();
+  });
+};
+//View Role
+const viewRole = () => {
+  connection.query("SELECT * FROM role", (err, res) => {
+    if (err) throw err;
+    menuPrompts();
+  });
+};
+//View Employee
+const viewEmployees = () => {
+  connection.query("SELECT * FROM employee", (err, res) => {
+    if (err) throw err;
+    menuPrompts();
+  });
+};
+// const addEmployee = () => {
+//     return inquirer
+//     .prompt([
+//         {
+//             type: 'input',
+//             name: 'name',
+//             message: 'What is the employees name?',
+//         },
+//     ])
+//     .then((answer) => {
+//         connection.query(
+//             "INSERT INTO employee",
+//             { name: answer.name },
+//             (err, res) => {
+//                 menuPrompts();
+//             }
+//         );
+//     });
+// };
