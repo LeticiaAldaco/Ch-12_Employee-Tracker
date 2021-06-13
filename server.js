@@ -2,25 +2,29 @@ const inquirer = require("inquirer");
 const cTable = require("console.table");
 const connection = require("./db/connection");
 console.table();
+
+let listOfDepartments = [];
 //Menu Function
-const menuPrompts = () => {
-  inquirer
+const menuPrompts = async () => {
+  populateDepartments();
+  let response = await inquirer
     .prompt({
       name: "question",
       type: "list",
       message: "What would you like to do?",
       choices: [
-        "Add Deparment",
+        "Add Department",
         "Add Role",
         "Add Employee",
         "View all Departments",
         "View all Roles",
         "View all Employees",
+        "Update an employee role",
         "Exit",
       ],
     })
     .then((response) => {
-      if (response.question === "Add Deparment") {
+      if (response.question === "Add Department") {
         return addDepartment();
       }
       if (response.question === "Add Role") {
@@ -38,6 +42,9 @@ const menuPrompts = () => {
       if (response.question === "View all Employees") {
         return viewEmployees();
       }
+      if (response.question === "Update an employee role") {
+        return updateEmployee();
+      }
       if (response.question === "Exit") {
         return;
       }
@@ -47,28 +54,48 @@ menuPrompts();
 
 //View Department
 const viewDepartment = () => {
-  connection.query("SELECT * FROM department", (err, res) => {
+  connection.query("SELECT * FROM department", (err, data) => {
     if (err) throw err;
-    console.table(res);
+    console.table(data);
     menuPrompts();
   });
 };
 //View Role
 const viewRole = () => {
-  connection.query("SELECT * FROM role", (err, res) => {
+  let queryString = `
+  SELECT title, salary, department.name AS department
+  FROM role
+  JOIN department
+  WHERE department_id = department.id`;
+
+  connection.query(queryString, (err, data) => {
     if (err) throw err;
-    console.table(res);
+    console.table(data);
+
     menuPrompts();
   });
 };
 //View Employee
 const viewEmployees = () => {
-  connection.query("SELECT * FROM employee", (err, res) => {
+  const query = `SELECT * FROM employee;`;
+
+  connection.query(query, (err, data) => {
     if (err) throw err;
-    console.table(res);
+    console.table(data);
+
     menuPrompts();
   });
 };
+
+function populateDepartments() {
+  listOfDepartments = [];
+  connection.query(`SELECT * FROM department`, (err, data) => {
+    data.forEach((index) => {
+      listOfDepartments.push(index.name);
+    });
+  });
+}
+
 //Add Department
 const addDepartment = () => {
   return inquirer
@@ -83,7 +110,9 @@ const addDepartment = () => {
       connection.query(
         "INSERT INTO department(name) VALUES (?) ",
         answer.name,
-        (err, res) => {
+        (err, data) => {
+          if (err) throw err;
+          console.log(data);
           menuPrompts();
         }
       );
@@ -98,12 +127,30 @@ const addRole = () => {
         name: "name",
         message: "What role would you like to add?",
       },
+      {
+        type: "number",
+        name: "salary",
+        message: "Insert salary amount",
+      },
+      {
+        name: "deptID",
+        message: "Which department does this new role belong to?",
+        type: "list",
+        choices: listOfDepartments,
+      },
     ])
     .then((answer) => {
+      console.log(listOfDepartments.indexOf(answer.deptID) + 1);
       connection.query(
-        "INSERT INTO role(title) VALUES (?)",
-        answer.name,
-        (err, res) => {
+        "INSERT INTO role(title, salary, department_id) VALUES (?, ?, ?)",
+        [
+          answer.name,
+          answer.salary,
+          listOfDepartments.indexOf(response.deptID) + 1,
+        ],
+        (err, data) => {
+          if (err) throw err;
+          console.log(data);
           menuPrompts();
         }
       );
@@ -135,11 +182,50 @@ const addEmployee = () => {
       },
     ])
     .then((answer) => {
+      console.log(
+        listOfDepartments.indexOf(answer.roleID, answer.managersID) + 1
+      );
       connection.query(
-        `INSERT INTO employee (first_name, last_name, role_id, manager_id)
-            VALUES ('${answer.firstName}', '${answer.lastName}', '${answer.roleId}', '${answer.managersId}')`,
-        (err, res) => {
-          console.table(res);
+        "INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)",
+        [
+          answer.firstName,
+          answer.lastName,
+          answer.employeeRole,
+          answer.newManager,
+        ],
+        (err, data) => {
+          if (err) throw err;
+          console.log(data);
+          menuPrompts();
+        }
+      );
+    });
+};
+
+const updateEmployee = () => {
+  inquirer
+    .prompt([
+      {
+        type: "list",
+        name: "chooseEmployee",
+        message: "Which employee would you like to update?",
+        choices: [],
+      },
+      {
+        type: "list",
+        name: "roleList",
+        message: "What is the new role for this employee?",
+        choices: [],
+      },
+    ])
+    .then((answer) => {
+      console.log(listOfDepartments.indexOf(answer.viewEmployees()) + 1);
+      connection.query(
+        "UPDATE employee SET role_id ? WHERE last_name ?",
+        [answer.employeeRole, answer.lastName],
+        (err, data) => {
+          if (err) throw err;
+          console.log(data);
           menuPrompts();
         }
       );
