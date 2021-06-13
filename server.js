@@ -44,6 +44,28 @@ const menuPrompts = () => {
     });
 };
 menuPrompts();
+
+//View Department
+const viewDepartment = () => {
+  connection.query("SELECT * FROM department", (err, res) => {
+    if (err) throw err;
+    menuPrompts();
+  });
+};
+//View Role
+const viewRole = () => {
+  connection.query("SELECT * FROM role", (err, res) => {
+    if (err) throw err;
+    menuPrompts();
+  });
+};
+//View Employee
+const viewEmployees = () => {
+  connection.query("SELECT * FROM employee", (err, res) => {
+    if (err) throw err;
+    menuPrompts();
+  });
+};
 //Add Department
 const addDepartment = () => {
   return inquirer
@@ -90,57 +112,33 @@ const addEmployee = () => {
     .prompt([
       {
         type: "input",
-        name: "name",
-        message: "What is the employees name?",
+        name: "firstName",
+        message: "What is the employees first name?",
+      },
+      {
+        type: "input",
+        name: "lastName",
+        message: "What is the employees last name?",
+      },
+      {
+        type: "input",
+        name: "roleId",
+        message: "What is the employees role ID?",
+      },
+      {
+        type: "input",
+        name: "managersId",
+        message: "What is the employees managers ID?",
       },
     ])
     .then((answer) => {
       connection.query(
-        "INSERT INTO employee",
-        { name: answer.name },
+        `INSERT INTO employee (first_name, last_name, role_id, manager_id)
+            VALUES ('${answer.firstName}', '${answer.lastName}', '${answer.roleId}', '${answer.managersId}')`,
         (err, res) => {
+          console.table(res);
           menuPrompts();
         }
       );
     });
 };
-//View Department
-const viewDepartment = () => {
-  connection.query("SELECT * FROM department", (err, res) => {
-    if (err) throw err;
-    menuPrompts();
-  });
-};
-//View Role
-const viewRole = () => {
-  connection.query("SELECT * FROM role", (err, res) => {
-    if (err) throw err;
-    menuPrompts();
-  });
-};
-//View Employee
-const viewEmployees = () => {
-  connection.query("SELECT * FROM employee", (err, res) => {
-    if (err) throw err;
-    menuPrompts();
-  });
-};
-// const addEmployee = () => {
-//     return inquirer
-//     .prompt([
-//         {
-//             type: 'input',
-//             name: 'name',
-//             message: 'What is the employees name?',
-//         },
-//     ])
-//     .then((answer) => {
-//         connection.query(
-//             "INSERT INTO employee",
-//             { name: answer.name },
-//             (err, res) => {
-//                 menuPrompts();
-//             }
-//         );
-//     });
-// };
