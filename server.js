@@ -21,22 +21,22 @@ const menuPrompts = () => {
     })
     .then((response) => {
       if (response.question === "Add Deparment") {
-        addDepartment();
+        return addDepartment();
       }
       if (response.question === "Add Role") {
-        addRole();
+        return addRole();
       }
       if (response.question === "Add Employee") {
-        addEmployee();
+        return addEmployee();
       }
       if (response.question === "View all Departments") {
-        viewDepartment();
+        return viewDepartment();
       }
       if (response.question === "View all Roles") {
-        viewRole();
+        return viewRole();
       }
       if (response.question === "View all Employees") {
-        viewEmployees();
+        return viewEmployees();
       }
       if (response.question === "Exit") {
         return;
@@ -49,6 +49,7 @@ menuPrompts();
 const viewDepartment = () => {
   connection.query("SELECT * FROM department", (err, res) => {
     if (err) throw err;
+    console.table(res);
     menuPrompts();
   });
 };
@@ -56,6 +57,7 @@ const viewDepartment = () => {
 const viewRole = () => {
   connection.query("SELECT * FROM role", (err, res) => {
     if (err) throw err;
+    console.table(res);
     menuPrompts();
   });
 };
@@ -63,6 +65,7 @@ const viewRole = () => {
 const viewEmployees = () => {
   connection.query("SELECT * FROM employee", (err, res) => {
     if (err) throw err;
+    console.table(res);
     menuPrompts();
   });
 };
@@ -78,8 +81,8 @@ const addDepartment = () => {
     ])
     .then((answer) => {
       connection.query(
-        "INSERT INTO department",
-        { name: answer.name },
+        "INSERT INTO department(name) VALUES (?) ",
+        answer.name,
         (err, res) => {
           menuPrompts();
         }
@@ -98,8 +101,8 @@ const addRole = () => {
     ])
     .then((answer) => {
       connection.query(
-        "INSERT INTO role",
-        { name: answer.name },
+        "INSERT INTO role(title) VALUES (?)",
+        answer.name,
         (err, res) => {
           menuPrompts();
         }
